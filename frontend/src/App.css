@@ -20,6 +20,10 @@ input {
   font: inherit;
 }
 
+button {
+  cursor: pointer;
+}
+
 .app {
   min-height: 100vh;
 }
@@ -67,6 +71,353 @@ input {
 }
 
 /* =========================
+   AI 数据助手
+   ========================= */
+
+.ai-panel {
+  background: #ffffff;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  box-shadow:
+    0 4px 18px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+/* =========================
+   AI 顶部标题
+   ========================= */
+
+.ai-chat-header {
+  min-height: 68px;
+  padding: 0 24px;
+  background: #111827;
+  color: #ffffff;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  position: relative;
+}
+
+.ai-chat-title {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.ai-chat-status {
+  position: absolute;
+  right: 24px;
+
+  font-size: 12px;
+  color: #86efac;
+}
+
+/* =========================
+   对话主体
+   ========================= */
+
+.ai-chat-body {
+  padding: 22px 24px 16px;
+  background: #f8fafc;
+
+  min-height: 190px;
+  max-height: 430px;
+
+  overflow-y: auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* =========================
+   初始欢迎语
+   ========================= */
+
+.ai-welcome {
+  padding: 8px 4px 14px;
+}
+
+.ai-bot-name {
+  color: #111827;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.ai-bot-welcome {
+  color: #374151;
+  font-size: 15px;
+  line-height: 1.7;
+
+  padding-left: 22px;
+}
+
+/* =========================
+   微信式聊天
+   ========================= */
+
+.chat-row {
+  width: 100%;
+  display: flex;
+}
+
+.chat-row-user {
+  justify-content: flex-end;
+}
+
+.chat-row-assistant {
+  justify-content: flex-start;
+}
+
+.chat-user-content {
+  max-width: 78%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.chat-assistant-content {
+  max-width: 82%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* =========================
+   老板
+   ========================= */
+
+.chat-user-name {
+  color: #111827;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.chat-user-bubble {
+  background: #2563eb;
+  color: #ffffff;
+
+  padding: 11px 15px;
+
+  border-radius: 14px 14px 4px 14px;
+
+  font-size: 14px;
+  line-height: 1.6;
+
+  box-shadow:
+    0 2px 6px rgba(37, 99, 235, 0.15);
+}
+
+/* =========================
+   私人牛马
+   ========================= */
+
+.chat-assistant-name {
+  color: #111827;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.chat-assistant-bubble {
+  background: #ffffff;
+  color: #374151;
+
+  padding: 12px 16px;
+
+  border-radius: 4px 14px 14px 14px;
+
+  border: 1px solid #e5e7eb;
+
+  font-size: 14px;
+  line-height: 1.7;
+
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.04);
+
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* =========================
+   牛马奔腾
+   ========================= */
+
+.ai-working {
+  color: #2563eb;
+  font-weight: 600;
+  animation: horseRunning 1.2s infinite;
+}
+
+@keyframes horseRunning {
+  0% {
+    opacity: 0.45;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.45;
+  }
+}
+
+/* =========================
+   快捷问题
+   ========================= */
+
+.ai-quick-area {
+  padding: 18px 24px 14px;
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+}
+
+.ai-quick-title {
+  color: #6b7280;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.ai-quick-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ai-quick-list button {
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #374151;
+
+  border-radius: 999px;
+
+  padding: 7px 12px;
+
+  font-size: 12px;
+
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    color 0.2s;
+}
+
+.ai-quick-list button:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #2563eb;
+}
+
+.ai-quick-list button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* =========================
+   AI 输入区域
+   ========================= */
+
+.ai-input-area {
+  display: flex;
+  gap: 10px;
+
+  padding: 16px 24px;
+
+  background: #ffffff;
+
+  border-top: 1px solid #e5e7eb;
+}
+
+.ai-input-area input {
+  flex: 1;
+  min-width: 0;
+
+  height: 46px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+
+  padding: 0 15px;
+
+  background: #ffffff;
+
+  outline: none;
+
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.ai-input-area input:focus {
+  border-color: #2563eb;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(37, 99, 235, 0.1);
+}
+
+.ai-input-area input::placeholder {
+  color: #9ca3af;
+}
+
+.ai-input-area input:disabled {
+  background: #f9fafb;
+}
+
+/* =========================
+   发送按钮
+   ========================= */
+
+.ai-send-button {
+  min-width: 105px;
+  height: 46px;
+
+  border: none;
+  border-radius: 10px;
+
+  background: #111827;
+  color: #ffffff;
+
+  font-weight: 600;
+
+  transition:
+    background 0.2s,
+    transform 0.1s;
+}
+
+.ai-send-button:hover:not(:disabled) {
+  background: #374151;
+}
+
+.ai-send-button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.ai-send-button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* =========================
+   AI 底部提示
+   ========================= */
+
+.ai-tip {
+  padding: 0 24px 17px;
+
+  background: #ffffff;
+
+  color: #9ca3af;
+
+  font-size: 11px;
+}
+
+/* =========================
    日期筛选
    ========================= */
 
@@ -74,11 +425,16 @@ input {
   background: white;
   border-radius: 14px;
   padding: 20px;
+
   display: flex;
   align-items: end;
   gap: 16px;
+
   margin-bottom: 24px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+
+  box-shadow:
+    0 2px 12px
+    rgba(0, 0, 0, 0.04);
 }
 
 .filter-card div {
@@ -96,15 +452,17 @@ input {
   border: 1px solid #d1d5db;
   border-radius: 8px;
   padding: 9px 12px;
+  background: #ffffff;
 }
 
 .filter-card button {
   border: none;
   border-radius: 8px;
+
   background: #111827;
   color: white;
+
   padding: 10px 18px;
-  cursor: pointer;
 }
 
 .filter-card button:hover {
@@ -124,9 +482,13 @@ input {
 .error {
   background: #fef2f2;
   color: #b91c1c;
+
   border: 1px solid #fecaca;
+
   padding: 14px 18px;
+
   border-radius: 10px;
+
   margin-bottom: 20px;
 }
 
@@ -137,7 +499,9 @@ input {
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+
   gap: 20px;
+
   margin-bottom: 24px;
 }
 
@@ -145,19 +509,27 @@ input {
   background: white;
   border-radius: 14px;
   padding: 24px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+
+  box-shadow:
+    0 2px 12px
+    rgba(0, 0, 0, 0.04);
 }
 
 .stat-card span {
   display: block;
+
   color: #6b7280;
+
   font-size: 14px;
+
   margin-bottom: 10px;
 }
 
 .stat-card strong {
   display: block;
+
   font-size: 30px;
+
   margin-bottom: 8px;
 }
 
@@ -172,14 +544,20 @@ input {
 .panel {
   background: white;
   border-radius: 14px;
+
   padding: 24px;
+
   margin-bottom: 24px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+
+  box-shadow:
+    0 2px 12px
+    rgba(0, 0, 0, 0.04);
 }
 
 .panel-header {
   display: flex;
   justify-content: space-between;
+
   margin-bottom: 20px;
 }
 
@@ -190,7 +568,9 @@ input {
 
 .panel-header p {
   margin: 6px 0 0;
+
   color: #9ca3af;
+
   font-size: 13px;
 }
 
@@ -213,7 +593,9 @@ input {
 
 .two-columns {
   display: grid;
+
   grid-template-columns: 1fr 1fr;
+
   gap: 24px;
 }
 
@@ -232,27 +614,41 @@ table {
 
 th {
   text-align: left;
+
   font-size: 13px;
+
   color: #6b7280;
+
   font-weight: 500;
+
   padding: 12px;
-  border-bottom: 1px solid #e5e7eb;
+
+  border-bottom:
+    1px solid #e5e7eb;
 }
 
 td {
   padding: 14px 12px;
-  border-bottom: 1px solid #f3f4f6;
+
+  border-bottom:
+    1px solid #f3f4f6;
+
   font-size: 14px;
 }
 
 .rank {
   display: inline-flex;
+
   width: 25px;
   height: 25px;
+
   align-items: center;
   justify-content: center;
+
   border-radius: 50%;
+
   background: #f3f4f6;
+
   font-size: 12px;
 }
 
@@ -266,9 +662,13 @@ td {
 
 .category-content {
   display: flex;
+
   align-items: center;
+
   justify-content: center;
+
   gap: 50px;
+
   min-height: 380px;
 }
 
@@ -279,36 +679,50 @@ td {
 
 .category-legend {
   width: 35%;
+
   display: flex;
+
   flex-direction: column;
+
   gap: 16px;
 }
 
 .category-legend-item {
   display: flex;
+
   align-items: center;
+
   justify-content: space-between;
+
   gap: 16px;
+
   padding: 12px 14px;
+
   border-radius: 10px;
+
   background: #f9fafb;
 }
 
 .category-legend-left {
   display: flex;
+
   align-items: center;
+
   gap: 10px;
 }
 
 .category-color {
   width: 12px;
   height: 12px;
+
   border-radius: 50%;
+
   flex-shrink: 0;
 }
 
 .category-name {
   color: #374151;
+
   font-size: 14px;
 }
 
@@ -318,14 +732,19 @@ td {
 
 .category-value strong {
   display: block;
+
   font-size: 15px;
+
   color: #111827;
 }
 
 .category-value small {
   display: block;
+
   margin-top: 3px;
+
   color: #9ca3af;
+
   font-size: 12px;
 }
 
@@ -334,10 +753,14 @@ td {
    ========================= */
 
 @media (max-width: 900px) {
+
   .header {
     padding: 24px;
+
     flex-direction: column;
+
     align-items: flex-start;
+
     gap: 15px;
   }
 
@@ -355,6 +778,7 @@ td {
 
   .category-content {
     flex-direction: column;
+
     gap: 20px;
   }
 
@@ -365,16 +789,40 @@ td {
   .category-legend {
     width: 100%;
   }
+
+  .ai-chat-header {
+    justify-content: flex-start;
+  }
+
+  .ai-chat-title {
+    font-size: 16px;
+  }
+
+  .ai-chat-status {
+    display: none;
+  }
+
+  .chat-user-content,
+  .chat-assistant-content {
+    max-width: 90%;
+  }
 }
 
+/* =========================
+   手机端
+   ========================= */
+
 @media (max-width: 600px) {
+
   .filter-card {
     flex-direction: column;
+
     align-items: stretch;
   }
 
   .dataset-info {
     flex-direction: column;
+
     gap: 6px;
   }
 
@@ -384,5 +832,50 @@ td {
 
   .category-chart {
     height: 300px;
+  }
+
+  .ai-chat-header {
+    padding: 0 18px;
+  }
+
+  .ai-chat-title {
+    font-size: 15px;
+    letter-spacing: 0;
+  }
+
+  .ai-chat-body {
+    padding: 18px 15px;
+  }
+
+  .ai-quick-area {
+    padding: 15px;
+  }
+
+  .ai-input-area {
+    padding: 14px 15px;
+
+    flex-direction: column;
+  }
+
+  .ai-send-button {
+    width: 100%;
+  }
+
+  .ai-tip {
+    padding: 0 15px 15px;
+  }
+
+  .chat-user-content,
+  .chat-assistant-content {
+    max-width: 94%;
+  }
+
+  .ai-quick-list {
+    flex-direction: column;
+  }
+
+  .ai-quick-list button {
+    width: 100%;
+    text-align: left;
   }
 }

@@ -43,6 +43,17 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // ============================================================
+  // AI 数据问答
+  // ============================================================
+
+  const [question, setQuestion] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+
+  // 最多保存最近两轮问答
+  // 一轮 = 用户问题 + 牛马回答
+  const [messages, setMessages] = useState([]);
+
   useEffect(() => {
     loadMeta();
   }, []);
@@ -95,26 +106,132 @@ function App() {
     }
   }
 
+  // ============================================================
+  // AI 问答
+  // ============================================================
+
+  async function askAI(customQuestion = null) {
+    const text = (
+      customQuestion !== null ? customQuestion : question
+    ).trim();
+
+    if (!text || aiLoading) {
+      return;
+    }
+
+    // ========================================================
+    // 先加入用户问题
+    // 只保留最近两轮问答
+    // ========================================================
+
+    setMessages((prev) => {
+      const newMessages = [
+        ...prev,
+        {
+          role: "user",
+          content: text,
+        },
+      ];
+
+      return newMessages.slice(-4);
+    });
+
+    setQuestion("");
+    setAiLoading(true);
+
+    try {
+      const response = await axios.post(
+        `${API_BASE}/api/ask`,
+        {
+          question: text,
+        }
+      );
+
+      const data = response.data;
+
+      // ======================================================
+      // 加入牛马回答
+      // 最终始终只保留最近两轮问答
+      // ======================================================
+
+      setMessages((prev) => {
+        const newMessages = [
+          ...prev,
+          {
+            role: "assistant",
+            content:
+              data.answer ||
+              "暂时没有得到有效回答。",
+            success: data.success,
+            data: data.data || [],
+          },
+        ];
+
+        return newMessages.slice(-4);
+      });
+    } catch (err) {
+      console.error(err);
+
+      setMessages((prev) => {
+        const newMessages = [
+          ...prev,
+          {
+            role: "assistant",
+            content:
+              "牛马暂时无法连接后端，请确认 FastAPI 正在运行。",
+            success: false,
+            data: [],
+          },
+        ];
+
+        return newMessages.slice(-4);
+      });
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
+  // ============================================================
+  // 回车发送
+  // ============================================================
+
+  function handleQuestionKeyDown(event) {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      askAI();
+    }
+  }
+
+  // ============================================================
+  // 数据统计
+  // ============================================================
+
   const summary = useMemo(() => {
     const revenue = dailySales.reduce(
-      (sum, item) => sum + Number(item.revenue || 0),
+      (sum, item) =>
+        sum + Number(item.revenue || 0),
       0
     );
 
     const orderCount = dailySales.reduce(
-      (sum, item) => sum + Number(item.order_count || 0),
+      (sum, item) =>
+        sum + Number(item.order_count || 0),
       0
     );
 
     return {
       revenue,
       orderCount,
-      averageOrderValue: orderCount ? revenue / orderCount : 0,
+      averageOrderValue: orderCount
+        ? revenue / orderCount
+        : 0,
     };
   }, [dailySales]);
 
   function formatMoney(value) {
-    return `¥${Number(value || 0).toLocaleString("zh-CN", {
+    return `¥${Number(
+      value || 0
+    ).toLocaleString("zh-CN", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
@@ -122,19 +239,29 @@ function App() {
 
   return (
     <div className="app">
-      {/* =========================
+
+      {/* ======================================================
           顶部
-      ========================= */}
+      ====================================================== */}
+
       <header className="header">
+
         <div>
           <h1>连锁餐饮经营数据分析平台</h1>
-          <p>Moneki Sales Dashboard</p>
+
+          <p>
+            Moneki Sales Dashboard
+          </p>
         </div>
 
         {meta && (
           <div className="dataset-info">
+
             <span>
-              销售记录 {Number(meta.sales_rows).toLocaleString()}
+              销售记录{" "}
+              {Number(
+                meta.sales_rows
+              ).toLocaleString()}
             </span>
 
             <span>
@@ -144,22 +271,253 @@ function App() {
             <span>
               商品 {meta.product_count}
             </span>
+
           </div>
         )}
+
       </header>
 
       <main className="container">
-        {/* =========================
+
+        {/* ====================================================
+            AI 数据助手
+        ==================================================== */}
+
+        <section className="ai-panel">
+
+          {/* ==================================================
+              牛马标题栏
+          ================================================== */}
+
+          <div className="ai-chat-header">
+
+            <div className="ai-chat-title">
+              超级无敌24小时轮轴转牛马
+            </div>
+
+            <div className="ai-chat-status">
+              ● 随时待命
+            </div>
+
+          </div>
+
+          {/* ==================================================
+              对话内容
+          ================================================== */}
+
+          <div className="ai-chat-body">
+
+            {/* 初始状态 */}
+
+            {messages.length === 0 && !aiLoading && (
+              <div className="ai-welcome">
+
+                <div className="ai-bot-name">
+                  您的私人牛马：
+                </div>
+
+                <div className="ai-bot-welcome">
+                  老板有何吩咐？
+                </div>
+
+              </div>
+            )}
+
+            {/* =================================================
+                历史对话
+            ================================================= */}
+
+            {messages.map(
+              (message, index) => {
+
+                if (message.role === "user") {
+                  return (
+                    <div
+                      key={index}
+                      className="chat-row chat-row-user"
+                    >
+
+                      <div className="chat-user-content">
+
+                        <div className="chat-user-name">
+                          **老板**
+                        </div>
+
+                        <div className="chat-user-bubble">
+                          {message.content}
+                        </div>
+
+                      </div>
+
+                    </div>
+                  );
+                }
+
+                return (
+                  <div
+                    key={index}
+                    className="chat-row chat-row-assistant"
+                  >
+
+                    <div className="chat-assistant-content">
+
+                      <div className="chat-assistant-name">
+                        您的私人牛马：
+                      </div>
+
+                      <div className="chat-assistant-bubble">
+                        {message.content}
+                      </div>
+
+                    </div>
+
+                  </div>
+                );
+              }
+            )}
+
+            {/* =================================================
+                牛马工作状态
+            ================================================= */}
+
+            {aiLoading && (
+              <div className="chat-row chat-row-assistant">
+
+                <div className="chat-assistant-content">
+
+                  <div className="chat-assistant-name">
+                    您的私人牛马：
+                  </div>
+
+                  <div className="chat-assistant-bubble ai-working">
+                    牛马真正奔腾中...
+                    <br />
+                    奔腾...
+                    <br />
+                    奔...
+                  </div>
+
+                </div>
+
+              </div>
+            )}
+
+          </div>
+
+          {/* ==================================================
+              快捷问题
+          ================================================== */}
+
+          <div className="ai-quick-area">
+
+            <div className="ai-quick-title">
+              您可以尝试鞭策：
+            </div>
+
+            <div className="ai-quick-list">
+
+              <button
+                onClick={() =>
+                  askAI(
+                    "哪个品类的门店营业额最高？"
+                  )
+                }
+                disabled={aiLoading}
+              >
+                哪个品类的门店营业额最高？
+              </button>
+
+              <button
+                onClick={() =>
+                  askAI(
+                    "牛肉Poke在六月的销售额是多少？"
+                  )
+                }
+                disabled={aiLoading}
+              >
+                牛肉Poke在六月的销售额是多少？
+              </button>
+
+              <button
+                onClick={() =>
+                  askAI(
+                    "最近客单价是上涨还是下降？"
+                  )
+                }
+                disabled={aiLoading}
+              >
+                最近客单价是上涨还是下降？
+              </button>
+
+            </div>
+
+          </div>
+
+          {/* ==================================================
+              输入区域
+          ================================================== */}
+
+          <div className="ai-input-area">
+
+            <input
+              type="text"
+              value={question}
+              placeholder="🪢 请输入您想要了解的问题（鞭子图案）……"
+              onChange={(e) =>
+                setQuestion(
+                  e.target.value
+                )
+              }
+              onKeyDown={
+                handleQuestionKeyDown
+              }
+              disabled={aiLoading}
+            />
+
+            <button
+              className="ai-send-button"
+              onClick={() =>
+                askAI()
+              }
+              disabled={
+                aiLoading ||
+                !question.trim()
+              }
+            >
+              {aiLoading
+                ? "奔腾中..."
+                : "🪢 发送"}
+            </button>
+
+          </div>
+
+          {/* ==================================================
+              底部提示
+          ================================================== */}
+
+          <div className="ai-tip">
+            当前回答基于真实 SQLite 销售数据，不会虚构销售数字。
+          </div>
+
+        </section>
+
+        {/* ====================================================
             日期筛选
-        ========================= */}
+        ==================================================== */}
+
         <section className="filter-card">
+
           <div>
             <label>开始日期</label>
 
             <input
               type="date"
               value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+              onChange={(e) =>
+                setStartDate(
+                  e.target.value
+                )
+              }
             />
           </div>
 
@@ -169,11 +527,17 @@ function App() {
             <input
               type="date"
               value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
+              onChange={(e) =>
+                setEndDate(
+                  e.target.value
+                )
+              }
             />
           </div>
 
-          <button onClick={loadDashboard}>
+          <button
+            onClick={loadDashboard}
+          >
             刷新数据
           </button>
 
@@ -182,35 +546,48 @@ function App() {
               数据加载中...
             </span>
           )}
+
         </section>
 
-        {/* =========================
+        {/* ====================================================
             错误提示
-        ========================= */}
+        ==================================================== */}
+
         {error && (
           <div className="error">
             {error}
           </div>
         )}
 
-        {/* =========================
+        {/* ====================================================
             数据概览
-        ========================= */}
+        ==================================================== */}
+
         <section className="stats-grid">
+
           <div className="stat-card">
-            <span>总营业额</span>
+
+            <span>
+              总营业额
+            </span>
 
             <strong>
-              {formatMoney(summary.revenue)}
+              {formatMoney(
+                summary.revenue
+              )}
             </strong>
 
             <small>
               {startDate} 至 {endDate}
             </small>
+
           </div>
 
           <div className="stat-card">
-            <span>订单数</span>
+
+            <span>
+              订单数
+            </span>
 
             <strong>
               {summary.orderCount.toLocaleString()}
@@ -219,46 +596,69 @@ function App() {
             <small>
               按订单号去重统计
             </small>
+
           </div>
 
           <div className="stat-card">
-            <span>平均客单价</span>
+
+            <span>
+              平均客单价
+            </span>
 
             <strong>
-              {formatMoney(summary.averageOrderValue)}
+              {formatMoney(
+                summary.averageOrderValue
+              )}
             </strong>
 
             <small>
               营业额 ÷ 订单数
             </small>
+
           </div>
+
         </section>
 
-        {/* =========================
+        {/* ====================================================
             每日营业额趋势
-        ========================= */}
+        ==================================================== */}
+
         <section className="panel">
+
           <div className="panel-header">
+
             <div>
-              <h2>每日营业额趋势</h2>
+
+              <h2>
+                每日营业额趋势
+              </h2>
 
               <p>
                 真实 API 数据
               </p>
+
             </div>
+
           </div>
 
           <div className="chart">
+
             <ResponsiveContainer
               width="100%"
               height="100%"
             >
-              <LineChart data={dailySales}>
+
+              <LineChart
+                data={dailySales}
+              >
+
                 <CartesianGrid
                   strokeDasharray="3 3"
                 />
 
-                <XAxis dataKey="date" />
+                <XAxis
+                  dataKey="date"
+                />
 
                 <YAxis />
 
@@ -276,48 +676,73 @@ function App() {
                   strokeWidth={2}
                   dot={false}
                 />
+
               </LineChart>
+
             </ResponsiveContainer>
+
           </div>
+
         </section>
 
-        {/* =========================
+        {/* ====================================================
             Top 商品 + 门店排行
-        ========================= */}
+        ==================================================== */}
+
         <section className="two-columns">
+
           {/* Top 10 商品 */}
+
           <div className="panel">
+
             <div className="panel-header">
+
               <div>
-                <h2>Top 10 商品</h2>
+
+                <h2>
+                  Top 10 商品
+                </h2>
 
                 <p>
                   按销售额排序
                 </p>
+
               </div>
+
             </div>
 
             <div className="table-wrapper">
+
               <table>
+
                 <thead>
+
                   <tr>
                     <th>排名</th>
                     <th>商品</th>
                     <th>分类</th>
                     <th>销售额</th>
                   </tr>
+
                 </thead>
 
                 <tbody>
+
                   {topProducts.map(
                     (item, index) => (
+
                       <tr
-                        key={item.product_id}
+                        key={
+                          item.product_id
+                        }
                       >
+
                         <td>
+
                           <span className="rank">
                             {index + 1}
                           </span>
+
                         </td>
 
                         <td>
@@ -335,31 +760,47 @@ function App() {
                             item.revenue
                           )}
                         </td>
+
                       </tr>
+
                     )
                   )}
+
                 </tbody>
+
               </table>
+
             </div>
+
           </div>
 
           {/* 门店销售 */}
+
           <div className="panel">
+
             <div className="panel-header">
+
               <div>
-                <h2>门店销售排行</h2>
+
+                <h2>
+                  门店销售排行
+                </h2>
 
                 <p>
                   按销售额排序
                 </p>
+
               </div>
+
             </div>
 
             <div className="chart small-chart">
+
               <ResponsiveContainer
                 width="100%"
                 height="100%"
               >
+
                 <BarChart
                   data={storeSales}
                   layout="vertical"
@@ -370,11 +811,14 @@ function App() {
                     bottom: 10,
                   }}
                 >
+
                   <CartesianGrid
                     strokeDasharray="3 3"
                   />
 
-                  <XAxis type="number" />
+                  <XAxis
+                    type="number"
+                  />
 
                   <YAxis
                     type="category"
@@ -393,34 +837,50 @@ function App() {
                     dataKey="revenue"
                     fill="#111827"
                   />
+
                 </BarChart>
+
               </ResponsiveContainer>
+
             </div>
+
           </div>
+
         </section>
 
-        {/* =========================
+        {/* ====================================================
             商品分类销售
-        ========================= */}
+        ==================================================== */}
+
         <section className="panel category-panel">
+
           <div className="panel-header">
+
             <div>
-              <h2>商品分类销售</h2>
+
+              <h2>
+                商品分类销售
+              </h2>
 
               <p>
                 按商品分类汇总
               </p>
+
             </div>
+
           </div>
 
           <div className="category-content">
-            {/* 饼状图 */}
+
             <div className="category-chart">
+
               <ResponsiveContainer
                 width="100%"
                 height="100%"
               >
+
                 <PieChart>
+
                   <Pie
                     data={categorySales}
                     dataKey="revenue"
@@ -430,14 +890,19 @@ function App() {
                     outerRadius={125}
                     innerRadius={55}
                     paddingAngle={2}
-                    label={({ name, percent }) =>
-                      `${name} ${(percent * 100).toFixed(
-                        1
-                      )}%`
+                    label={({
+                      name,
+                      percent,
+                    }) =>
+                      `${name} ${(
+                        percent * 100
+                      ).toFixed(1)}%`
                     }
                   >
+
                     {categorySales.map(
                       (entry, index) => (
+
                         <Cell
                           key={`cell-${index}`}
                           fill={
@@ -447,8 +912,10 @@ function App() {
                             ]
                           }
                         />
+
                       )
                     )}
+
                   </Pie>
 
                   <Tooltip
@@ -457,14 +924,18 @@ function App() {
                       "销售额",
                     ]}
                   />
+
                 </PieChart>
+
               </ResponsiveContainer>
+
             </div>
 
-            {/* 右侧分类明细 */}
             <div className="category-legend">
+
               {categorySales.map(
                 (item, index) => (
+
                   <div
                     className="category-legend-item"
                     key={
@@ -472,7 +943,9 @@ function App() {
                       `category-${index}`
                     }
                   >
+
                     <div className="category-legend-left">
+
                       <span
                         className="category-color"
                         style={{
@@ -488,9 +961,11 @@ function App() {
                         {item.product_category ||
                           "未知分类"}
                       </span>
+
                     </div>
 
                     <div className="category-value">
+
                       <strong>
                         {formatMoney(
                           item.revenue
@@ -499,18 +974,27 @@ function App() {
 
                       <small>
                         {Number(
-                          item.order_count || 0
+                          item.order_count ||
+                            0
                         ).toLocaleString()}{" "}
                         个订单
                       </small>
+
                     </div>
+
                   </div>
+
                 )
               )}
+
             </div>
+
           </div>
+
         </section>
+
       </main>
+
     </div>
   );
 }
